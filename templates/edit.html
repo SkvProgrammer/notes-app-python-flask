@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Note</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h3 class="center-align">Edit Note</h3>
+        
+        <form id="editForm">
+            <div class="input-field">
+                <input id="title" type="text" value="{{ note.title }}" required>
+                <label for="title" class="active">Title</label>
+            </div>
+            <div class="input-field">
+                <textarea id="content" class="materialize-textarea" required>{{ note.content }}</textarea>
+                <label for="content" class="active">Content</label>
+            </div>
+            <div class="input-field">
+                <input id="tags" type="text" value="{{ note.tags }}">
+                <label for="tags" class="active">Tags (optional)</label>
+            </div>
+            <div class="input-field">
+                <input id="reminder" type="datetime-local" value="{{ note.reminder|default('', true) }}">
+                <label for="reminder" class="active">Reminder (optional)</label>
+            </div>
+            <button type="submit" class="btn waves-effect waves-light">Save Changes</button>
+        </form>
+    </div>
+
+    <script>
+        const noteId = {{ note.id }};
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const noteData = {
+                title: document.getElementById('title').value,
+                content: document.getElementById('content').value,
+                tags: document.getElementById('tags').value,
+                reminder: document.getElementById('reminder').value || null
+            };
+
+            fetch(`/notes/${noteId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(noteData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Note updated successfully!');
+                    window.location.href = '/';  // Redirect to home after updating
+                } else {
+                    alert('Failed to update the note. Please try again.');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>

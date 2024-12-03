@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Note</title>
+    <!-- Materialize CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <style>
+        /* Custom Styling */
+        body {
+            background-color: #f9f9f9;
+            margin: 0; /* Remove the default margin */
+            padding: 0; /* Remove the default padding */
+        }
+        .brand-logo img {
+            height: 40px;
+            margin-right: 10px;
+        }
+        .container {
+            max-width: 600px;
+        }
+        .card {
+            padding: 20px;
+            border-radius: 12px;
+        }
+        h4 {
+            font-weight: 600;
+            color: #00796b;
+        }
+        .btn {
+            margin-top: 20px;
+        }
+        .navbar-fixed {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Remove extra space above and below header/footer */
+        nav {
+            margin-top: 0; /* Remove top margin from navbar */
+        }
+        footer {
+            margin-top: 0; /* Remove top margin from footer */
+        }
+         /* Custom color for the page */
+         .custom-teal {
+            background-color: #00796b;
+        }
+
+        .custom-teal-text {
+            color: #00796b;
+        }
+
+        .custom-teal-btn {
+            background-color: #00796b;
+            color: white;
+        }
+
+        .custom-teal-btn:hover {
+            background-color: #004d40;
+        }
+    </style>
+</head>
+<body>
+    <nav class="custom-teal">
+        <div class="nav-wrapper container">
+            <a href="/" class="brand-logo">
+                <img src="https://via.placeholder.com/50" alt="Logo" class="circle responsive-img" style="height: 40px; vertical-align: middle;">
+                Keep Notes
+            </a>
+            <ul class="right hide-on-med-and-down">
+              
+                <li><a href="/" class="custom-teal-text">Home</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Sidenav for Mobile -->
+    <ul class="sidenav" id="mobile-nav">
+        <li><a href="/" class="custom-teal-text">Home</a></li>
+    </ul>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="card z-depth-2">
+            <h4 class="center-align">Create a New Note</h4>
+            <form id="createForm">
+                <div class="input-field">
+                    <input id="title" type="text" required>
+                    <label for="title">Title</label>
+                </div>
+                <div class="input-field">
+                    <textarea id="content" class="materialize-textarea" required></textarea>
+                    <label for="content">Content</label>
+                </div>
+                <div class="input-field">
+                    <input id="tags" type="text">
+                    <label for="tags">Tags (optional)</label>
+                </div>
+                <div class="input-field">
+                    <input id="reminder" type="datetime-local">
+                    <label for="reminder">Reminder</label>
+                </div>
+                <button type="submit" class="btn waves-effect waves-light teal">Create Note</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <!-- <footer class="page-footer teal darken-2 margin-bottom:0px;">
+        <div class="center-align"> 
+            <p class="white-text">© 2024 Keep Notes. All rights reserved.</p>
+         </div> 
+    </footer> -->
+
+    <!-- Materialize JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        document.getElementById('createForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const noteData = {
+                title: document.getElementById('title').value,
+                content: document.getElementById('content').value,
+                tags: document.getElementById('tags').value,
+                reminder: document.getElementById('reminder').value || null
+            };
+
+            fetch('/notes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(noteData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    M.toast({html: 'Note created successfully!'});
+                    setTimeout(() => window.location.href = '/', 1500); // Redirect after a delay
+                } else {
+                    M.toast({html: 'Failed to create the note. Please try again.'});
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>

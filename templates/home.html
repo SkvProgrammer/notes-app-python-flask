@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keep Notes</title>
+    <!-- Materialize CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <!-- Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* Custom color for the page */
+        .custom-teal {
+            background-color: #00796b;
+        }
+
+        .custom-teal-text {
+            color: #00796b;
+        }
+
+        .custom-teal-btn {
+            background-color: #00796b;
+            color: white;
+        }
+
+        .custom-teal-btn:hover {
+            background-color: #004d40;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="custom-teal">
+        <div class="nav-wrapper container">
+            <a href="/" class="brand-logo">
+                <img src="https://via.placeholder.com/50" alt="Logo" class="circle responsive-img" style="height: 40px; vertical-align: middle;">
+                Keep Notes
+            </a>
+            <a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+            <ul class="right hide-on-med-and-down">
+                <li>
+                    <form method="get" action="/" class="row valign-wrapper" style="margin-bottom: 0;">
+                        <div class="input-field col s8">
+                            <input id="search" type="search" name="search" value="{{ search_query }}" placeholder="Search notes" aria-label="Search">
+                        </div>
+                        <button class="btn waves-effect waves-light custom-teal-btn" type="submit">Search</button>
+                    </form>
+                </li>
+                <li><a href="/" class="custom-teal-text">Home</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Sidenav for Mobile -->
+    <ul class="sidenav" id="mobile-nav">
+        <li><a href="/" class="custom-teal-text">Home</a></li>
+    </ul>
+
+    <!-- Content -->
+    <div class="container">
+        <h3 class="center-align custom-teal-text">All Notes</h3>
+
+        <!-- Create Note Button -->
+        <div class="right-align">
+            <a href="/create-note" class="btn waves-effect waves-light custom-teal-btn">Create a Note</a>
+        </div>
+
+        {% if not no_notes %}
+        <div class="row">
+            {% for note in notes %}
+            <div class="col s12 m6 l4">
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title custom-teal-text">{{ note.title }}</span>
+                        <p>{{ note.content }}</p>
+                        <p class="grey-text">{{ note.tags }}</p>
+                    </div>
+                    <div class="card-action">
+                        <a href="/notes/{{ note.id }}/edit" class="custom-teal-text">Edit</a>
+                        <a href="#!" class="red-text" onclick="deleteNote({{ note.id }})">Delete</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card-panel yellow lighten-4 center-align">
+            <p>No notes created yet!</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Materialize JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        // Initialize sidenav
+        document.addEventListener('DOMContentLoaded', function() {
+            M.Sidenav.init(document.querySelectorAll('.sidenav'));
+        });
+
+        // Alert for search results
+        {% if search_alert %}
+        M.toast({html: "No notes found matching '{{ search_query }}'."});
+        {% endif %}
+
+        // Delete note function
+        function deleteNote(noteId) {
+            if (confirm("Are you sure you want to delete this note?")) {
+                fetch(`/notes/${noteId}`, {
+                    method: 'DELETE',
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload(); // Refresh the page to show the updated list of notes
+                    } else {
+                        M.toast({html: 'Failed to delete the note. Please try again.'});
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        }
+    </script>
+</body>
+</html>
