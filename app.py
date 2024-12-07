@@ -80,4 +80,6 @@ def update_note(id):
     return jsonify({'message': 'Note updated successfully'}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))  # Railway sets PORT in environment variables
+    app.run(host="0.0.0.0", port=port)
+    
