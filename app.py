@@ -1,22 +1,23 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user, login_manager
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from datetime import datetime
 import os
 
 app = Flask(__name__)
 
-# Configure the base directory for SQLite and secret key for sessions
+# Set a default database URI for the app
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your_secret_key'
 
-# Initialize the LoginManager
+# Initialize the SQLAlchemy object (without a URI yet)
+db = SQLAlchemy(app)
+
+# Initialize LoginManager
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-# Initialize SQLAlchemy without a specific URI, as it will be set dynamically per user
-db = SQLAlchemy(app)
-
-# User model for authentication
+# User model
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
@@ -47,7 +48,8 @@ def login():
         if user and user.password == password:  # Simple check, use hashed passwords in production
             login_user(user)
             # Set user-specific database URI dynamically
-            app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///users/{username}_notes.db"
+            user_db_uri = f"sqlite:///users/{username}_notes.db"
+            app.config['SQLALCHEMY_DATABASE_URI'] = user_db_uri
             with app.app_context():
                 db.create_all()  # Create tables in the user's database
             return redirect(url_for('home'))
@@ -148,5 +150,6 @@ def register():
     return render_template('register.html')
 
 if __name__ == '__main__':
-    app.run()
-                
+    # Set the default database for the app before running
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///default.db'
+    app.run(debug=True)
