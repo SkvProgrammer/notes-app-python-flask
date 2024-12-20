@@ -6,24 +6,28 @@ import os
 
 app = Flask(__name__)
 
-# Set a default database URI for the app
+# Default SQLite database URI for development (without user-specific db)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your_secret_key'
 
-# Initialize the SQLAlchemy object (without a URI yet)
+# Ensure persistent storage for SQLite databases (in Render's file system)
+if not os.path.exists('users'):
+    os.makedirs('users')  # Ensure the 'users' directory exists for storing user databases
+
+# Initialize SQLAlchemy object
 db = SQLAlchemy(app)
 
 # Initialize LoginManager
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-# User model
+# User model for authentication
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
 
-# Note model
+# Note model for storing notes
 class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
@@ -50,8 +54,11 @@ def login():
             # Set user-specific database URI dynamically
             user_db_uri = f"sqlite:///users/{username}_notes.db"
             app.config['SQLALCHEMY_DATABASE_URI'] = user_db_uri
+            
+            # Create all tables for this user
             with app.app_context():
                 db.create_all()  # Create tables in the user's database
+            
             return redirect(url_for('home'))
         else:
             flash('Invalid credentials')
@@ -150,6 +157,7 @@ def register():
     return render_template('register.html')
 
 if __name__ == '__main__':
-    # Set the default database for the app before running
+    # Set default database URI until a user logs in
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///default.db'
     app.run(debug=True)
+    
