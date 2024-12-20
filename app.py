@@ -6,28 +6,27 @@ import os
 
 app = Flask(__name__)
 
-# Default SQLite database URI for development (without user-specific db)
+# Configure the application
+app.config['SECRET_KEY'] = 'your_secret_key'  # Replace with a secure key
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'your_secret_key'
 
-# Ensure persistent storage for SQLite databases (in Render's file system)
-if not os.path.exists('users'):
-    os.makedirs('users')  # Ensure the 'users' directory exists for storing user databases
+# Default database URI (used before user login)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///default.db'
 
-# Initialize SQLAlchemy object
+# Initialize the database
 db = SQLAlchemy(app)
 
-# Initialize LoginManager
+# Initialize the login manager
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-# User model for authentication
+# User model
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
 
-# Note model for storing notes
+# Note model
 class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
@@ -36,7 +35,7 @@ class Note(db.Model):
     reminder = db.Column(db.DateTime, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-# User loader function for Flask-Login
+# User loader function
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -49,15 +48,15 @@ def login():
         password = request.form['password']
         
         user = User.query.filter_by(username=username).first()
-        if user and user.password == password:  # Simple check, use hashed passwords in production
+        if user and user.password == password:  # In production, use hashed passwords
             login_user(user)
-            # Set user-specific database URI dynamically
+            # Set user-specific database URI
             user_db_uri = f"sqlite:///users/{username}_notes.db"
             app.config['SQLALCHEMY_DATABASE_URI'] = user_db_uri
             
             # Create all tables for this user
             with app.app_context():
-                db.create_all()  # Create tables in the user's database
+                db.create_all()
             
             return redirect(url_for('home'))
         else:
@@ -157,7 +156,12 @@ def register():
     return render_template('register.html')
 
 if __name__ == '__main__':
-    # Set default database URI until a user logs in
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///default.db'
-    app.run(debug=True)
+    # Ensure the 'users' directory exists for storing user databases
+    if not os.path.exists('users'):
+        os.makedirs('users')
     
+    # Initialize the default database
+    with app.app_context():
+        db.create_all()
+    
+    app.run(debug=True)
